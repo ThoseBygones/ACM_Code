@@ -16,7 +16,7 @@ int main()
     while(~scanf("%d",&n),n)
     {
         memset(dp,0,sizeof(dp));
-        for(int i=; i<=n; i++)
+        for(int i=1; i<=n; i++)
             scanf("%d",&v[i]);
         scanf("%d",&left);
         if(left<5)
