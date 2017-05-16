@@ -1,5 +1,5 @@
 #include<stdio.h>
-#include<stdio.h>
+#include<math.h>
 int main()
 {
     int m,n,x,y,s,i,j,t,b,c;
