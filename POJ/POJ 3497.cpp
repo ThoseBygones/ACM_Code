@@ -1,4 +1,6 @@
+//G++使用string类型+cin会超时，可以使用char[]+scanf然后把char直接转换为string
 #include <iostream>
+#include <cstdio>
 #include <string>
 #include <map>
 #include <vector>
@@ -50,17 +52,21 @@ int main()
     cin >> t;
     while(t--)
     {
-        cin >> n >> b;
+        scanf("%d%d",&n,&b);
         cnt=0;
         for(int i=0; i<n; i++)
             c[i].clear();
         cId.clear();
         int maxQuality=0;
+        char a[25],b[25];
         string type,name;
         int p,q;
         for(int i=0; i<n; i++)
         {
-            cin >> type >> name >> p >> q;
+            scanf("%s %s %d %d",a,b,&p,&q);
+            //cin >> type >> name >> p >> q;
+            type = a;
+            name = b;
             Component temp;
             temp.price=p;
             temp.quality=q;
@@ -79,7 +85,7 @@ int main()
         }
         if((left+right)%2)  //避免陷入死循环，判断一下最后的差值是否为奇数，是的话-1
             left--;
-        cout << left << endl;
+        printf("%d\n",left);
     }
     return 0;
 }
