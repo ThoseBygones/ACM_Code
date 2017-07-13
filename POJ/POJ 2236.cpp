@@ -1,64 +1,77 @@
 #include <iostream>
+#include <cstdio>
 #include <cstring>
-#define MAXN 1005
+#include <algorithm>
 using namespace std;
 
-int x[MAXN],y[MAXN];
-int ok[MAXN];   //记录某台电脑是否被修好
-int par[MAXN];  //记录父节点的数组
+#define MAXN 1005
+
+struct Computer
+{
+    int x;
+    int y;
+} c[MAXN];
+
+int fa[MAXN];
+int vis[MAXN];  //鏄惁琚慨濂界殑鏍囪
 int n,d;
 
-int findSet(int r)
+bool reach(int i,int j)
 {
-    if(par[r]!=r)
-        par[r]=findSet(par[r]);
-    return par[r];
-}
-
-bool communicate(int a,int b)
-{
-    if((x[a]-x[b])*(x[a]-x[b])+(y[a]-y[b])*(y[a]-y[b])<=d*d)
+    if((c[i].x-c[j].x)*(c[i].x-c[j].x)+(c[i].y-c[j].y)*(c[i].y-c[j].y)<=d*d)
         return true;
     return false;
 }
 
+int findset(int x)
+{
+    if(x!=fa[x])
+        return fa[x]=findset(fa[x]);
+    return fa[x];
+}
+
+void unionset(int x,int y)
+{
+    int xx=findset(x);
+    int yy=findset(y);
+    if(xx!=yy)
+        fa[xx]=yy;
+}
+
 int main()
 {
-    cin >> n >> d;
+    scanf("%d%d",&n,&d);
     for(int i=1; i<=n; i++)
     {
-        cin >> x[i] >> y[i];
-        par[i]=i;
-        ok[i]=false;
+        fa[i]=i;
+        vis[i]=0;
     }
-    char op;
-    int num;
-    while(cin >> op)
+    for(int i=1; i<=n; i++)
+        scanf("%d%d",&c[i].x,&c[i].y);
+    char op[2];
+    while(~scanf("%s",op))
     {
-        if(op=='O')
+        if(op[0]=='O')
         {
-            cin >> num;
-            ok[num]=true;
+            int a;
+            scanf("%d",&a);
+            vis[a]=1;
             for(int i=1; i<=n; i++)
             {
-                if(i!=num && ok[i] && communicate(i,num))
-                {
-                    int xx=findSet(i);
-                    int yy=findSet(num);
-                    par[xx]=yy;
-                }
+                if(i!=a && vis[i] && reach(i,a))
+                    unionset(i,a);
             }
         }
-        if(op=='S')
+        if(op[0]=='S')
         {
-            int t1,t2;
-            cin >> t1 >> t2;
-            int xx=findSet(t1);
-            int yy=findSet(t2);
-            if(xx==yy)
-                cout << "SUCCESS" << endl;
+            int a,b;
+            scanf("%d%d",&a,&b);
+            int aa=findset(a);
+            int bb=findset(b);
+            if(aa==bb)
+                puts("SUCCESS");
             else
-                cout << "FAIL" << endl;
+                puts("FAIL");
         }
     }
     return 0;
