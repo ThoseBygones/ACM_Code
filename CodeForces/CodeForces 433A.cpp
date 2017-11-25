@@ -1,22 +1,17 @@
-#include <iostream>
+#include <bits/stdc++.h>
 using namespace std;
-
-int n,temp,a[2];
 
 int main()
 {
-    cin >> n;
-    while(n--)
+    int n;
+    scanf("%d",&n);
+    int cnt1=0,cnt2=0;
+    for(int i=0; i<n; i++)
     {
-        cin >> temp;
-        if(temp==200)
-            a[1]++;
-        else
-            a[0]++;
+        int temp;
+        scanf("%d",&temp);
+        temp==100?cnt1++:cnt2++;
     }
-    if(a[0]%2 || (!a[0] && a[1]%2))
-        cout << "NO" << endl;
-    else
-        cout << "YES" << endl;
+    puts(cnt1&1 || (!cnt1 && cnt2&1)?"NO":"YES");
     return 0;
 }
