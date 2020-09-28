@@ -2,11 +2,11 @@
  ********************************************************************************
  *  Author: ThoseBygones
  *  Version: V1.0
- *  Date: 2020-09-22
+ *  Date: 2020-09-23
  *  Subject: ACM-ICPC
  *  Language: C/C++14
  *  OJ: AOJ
- *  Algorithm: dfs + 染色 有向图判环
+ *  Algorithm:
  ********************************************************************************
  *  Algo-Description:
  ********************************************************************************
@@ -39,10 +39,7 @@
 //#include <bits/stdc++.h>
 using namespace std;
 
-template<class T> inline T sqr(T x)
-{
-    return x * x;
-}
+template<class T> inline T sqr(T x) {return x * x;}
 typedef long long LL;
 typedef unsigned long long ULL;
 typedef long double LD;
@@ -63,67 +60,78 @@ const double PI = acos(-1.0);
 #define rson mid+1,r,rt<<1|1
 #define lowbit(u) (u&(-u))
 
-const int MAXN = 105;
-const int MAXE = 1005;
+const int MAXN = 10005;
 
 int head[MAXN];
-int color[MAXN];
 int cnt;
 
 struct Edge
 {
     int to, nxt;
+    int cost;
     Edge() {}
-    Edge(int to, int nxt) : to(to), nxt(nxt) {}
-} e[MAXE];
+    Edge(int to, int nxt, int cost) : to(to), nxt(nxt), cost(cost) {}
+} e[MAXN << 1];
 
-inline void addEdge(int u, int v)
+inline void addEdge(int u, int v, int w)
 {
     e[cnt].to = v;
+    e[cnt].cost = w;
     e[cnt].nxt = head[u];
     head[u] = cnt++;
 }
 
-bool dfs(int u)
+int d[MAXN];    //d[i]表示以某个结点为根，结点i的深度
+int p[2]; //树的直径的两个端点
+int ans[MAXN];
+
+void dfs(int u, int fa, int id)
 {
-    color[u] = 1;
     for(int i = head[u]; ~i; i = e[i].nxt)
     {
         int v = e[i].to;
-        if(color[v] == 1)
-            return true;
-        if(!color[v] && dfs(v)) //下一个结点还未被处理过
-            return true;
-    }
-    color[u] = 2;
-    return false;
-}
-
-bool findLoop(int n)
-{
-    for(int i = 0; i < n; i++)
-    {
-        if(!color[i])
+        int w = e[i].cost;
+        if(v != fa)
         {
-            if(dfs(i))
-                return true;
+            d[v] = d[u] + w;
+            if(d[v] > d[p[id]])    //更新距离临时根结点（1号结点）最远的结点编号
+                p[id] = v;
+            dfs(v, u, id);
         }
     }
-    return false;
 }
+
+void solve(int n)    //dfs求树的直径
+{
+    memset(d, 0, sizeof(d));
+    dfs(0, -1, 0);  //从临时根节点开始遍历找到最远端的结点即为树的直径的一个端点
+    memset(d, 0, sizeof(d));
+    dfs(p[0], -1, 1); //从该端点开始遍历找到树的直径的另一个端点
+    for(int i = 0; i < n; i++)
+        ans[i] = max(ans[i], d[i]);
+    memset(d, 0, sizeof(d));
+    dfs(p[1], -1, 0);
+    for(int i = 0; i < n; i++)
+    {
+        ans[i] = max(ans[i], d[i]);
+        printf("%d\n", ans[i]);
+    }
+}
+
 
 int main()
 {
-    int n, m;
-    scanf("%d%d", &n, &m);
+    int n;
+    scanf("%d", &n);
     memset(head, -1, sizeof(head));
     cnt = 0;
-    for(int i = 0; i < m; i++)
+    for(int i = 1; i < n; i++)
     {
-        int u, v;
-        scanf("%d%d", &u, &v);
-        addEdge(u, v);
+        int u, v, w;
+        scanf("%d%d%d", &u, &v, &w);
+        addEdge(u, v, w);
+        addEdge(v, u, w);
     }
-    printf("%d\n", findLoop(n));
+    solve(n);
     return 0;
 }

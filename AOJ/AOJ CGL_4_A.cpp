@@ -1,129 +1,184 @@
+/*
+ ********************************************************************************
+ *  Author: ThoseBygones
+ *  Version: V1.0
+ *  Date: 2020-09-24
+ *  Subject: ACM-ICPC
+ *  Language: C/C++14
+ *  OJ: AOJ
+ *  Algorithm: ≈–∂œÕπ∞¸
+ ********************************************************************************
+ *  Algo-Description:
+ ********************************************************************************
+ */
+
+//#pragma comment(linker,"/STACK:102400000,102400000")
 #include <iostream>
-#include <iomanip>
 #include <cstdio>
-#include <cstring>
-#include <algorithm>
-#include <cmath>
+#include <cstdlib>
+#include <cassert>
+#include <climits>
+#include <ctime>
+#include <numeric>
 #include <vector>
+#include <algorithm>
+#include <bitset>
+#include <cmath>
+#include <cstring>
+#include <iomanip>
+#include <complex>
+#include <deque>
+#include <functional>
+#include <list>
+#include <map>
+#include <string>
+#include <sstream>
+#include <set>
+#include <stack>
+#include <queue>
+//#include <bits/stdc++.h>
 using namespace std;
 
-#define EPS 1e-10
-#define MAXN 100005
-#define INF 0x7fffffff
+template<class T> inline T sqr(T x) {return x * x;}
+typedef long long LL;
+typedef unsigned long long ULL;
+typedef long double LD;
+typedef pair<int, int> PII;
+typedef pair<PII, int> PIII;
+typedef pair<LL, LL> PLL;
+typedef pair<LL, int> PLI;
+typedef pair<LD, LD> PDD;
+#define MP make_pair
+#define PB push_back
+#define sz(x) ((int)(x).size())
+const double EPS = 1e-6;
+const int INF = 0x3fffffff;
+const LL LINF = INF * 1ll * INF;
+const double PI = acos(-1.0);
+
+#define lson l,mid,rt<<1
+#define rson mid+1,r,rt<<1|1
+#define lowbit(u) (u&(-u))
+
+#define Vector Point
 
 typedef double Type;
 
-int sign(Type x)
+inline int dcmp(double x)
 {
-    return x<-EPS?-1:(x>EPS?1:0);
+    return (x > EPS) - (x < -EPS);
 }
 
+//µ„µƒ∂®“Â
 struct Point
 {
-    Type x,y;
-    Point(Type x,Type y):x(x),y(y) {}
-    Point() {}
+    Type x, y;
+    //int belong;   // Ù”⁄ƒƒ“ª∏ˆ‘≤
+    Point(Type x=0,Type y=0):x(x),y(y) {}
+
+    Vector operator + (const Vector& rhs) const
+    {
+        return Vector(x + rhs.x, y + rhs.y);
+    }
+    Vector operator - (const Point& rhs) const
+    {
+        return Vector(x - rhs.x, y - rhs.y);
+    }
+    Vector operator * (Type p) const
+    {
+        return Vector(x * p, y * p);
+    }
+    Vector operator / (Type p) const
+    {
+        return Vector(x / p, y / p);
+    }
+    bool operator < (const Point& rhs) const    //œ»∂‘y≈≈–Ú
+    {
+        return dcmp(y - rhs.y) < 0 || (dcmp(y - rhs.y)==0 && dcmp(x - rhs.x) < 0);
+    }
+    /*
+    bool operator < (const Point& rhs) const
+    {
+        return x < rhs.x || (x == rhs.x && y < rhs.y);
+    }
+    */
+    bool operator == (const Point& rhs) const
+    {
+        return dcmp(x - rhs.x) == 0 && dcmp(y - rhs.y) == 0;
+    }
+    bool operator > (const Point& rhs) const
+    {
+        return !(*this < rhs || *this == rhs);
+    }
+    bool operator >= (const Point& rhs) const
+    {
+        return !(*this < rhs);
+    }
+    bool operator <= (const Point& rhs) const
+    {
+        return (*this < rhs || *this == rhs);
+    }
+    double operator * (const Vector& rhs) const //µ„ª˝
+    {
+        return x * rhs.x + y * rhs.y;
+    }
+    double operator ^ (const Vector& rhs) const //≤Êª˝
+    {
+        return x * rhs.y - y * rhs.x;
+    }
+
     void read()
     {
-        scanf("%lf %lf",&x,&y);
+        scanf("%lf%lf", &x, &y);
     }
-    bool operator==(const Point& p) const
+
+    void print() const
     {
-        return sign(x-p.x)==0&&sign(y-p.y)==0;
-    }
-    Point operator-(const Point& p) const
-    {
-        return Point(x-p.x,y-p.y);
-    }
-    Point operator*(const Type t) const
-    {
-        return Point(t*x,t*y);
-    }
-    Point operator+(const Point & p) const
-    {
-        return Point(x+p.x,y+p.y);
-    }
-    bool operator<(const Point& p) const
-    {
-        return sign(x-p.x)==0?sign(y-p.y)<0:sign(x-p.x)<0;
+        printf("%.0f %.0f\n", x, y);
     }
 };
 
-ostream& operator<<(ostream& out,Point p)
+typedef vector<Point> Polygon;  //◊È≥…∏√∆Ω√ÊµƒƒÊ ±’Îµ„ºØ
+
+int ConvexHull(vector<Point> &p, vector<Point> &ch)
 {
-    out<<fixed<<setprecision(0)<<p.x<<" "<<p.y;
-    return out;
-}
-
-typedef Point Vector;
-
-struct Line
-{
-    Point a,b;
-    Line() {}
-    Line(Point a,Point b):a(a),b(b) {}
-};
-
-typedef Line SegMent;
-
-struct Polygon
-{
-    vector<Point> v;
-};
-
-//ÂèâÁßØ
-Type Cross(Vector a,Vector b)
-{
-    return a.x*b.y-a.y*b.x;
-}
-
-bool cmp(Point a,Point b)
-{
-    if(a.x==b.x)
-        return a.y<b.y;
-    return a.x<b.x;
-}
-
-//Ê±ÇÂá∏ÂåÖÔºåÂ¶ÇÊûú‰∏çÂ∏åÊúõÂá∏ÂåÖËæπ‰∏äÊúâËæìÂÖ•ÁÇπÔºåÊää<=ÊîπÊàê<
-int ConvexHull(Point *p,int n,Point *ch)
-{
-    sort(p,p+n,cmp);
+    sort(p.begin(), p.end());    //¡Ω∏ˆµ„±»¥Û–°£¨œ»∫·◊¯±Í‘Ÿ◊›◊¯±Í£¨…˝–Ú
+    int n = unique(p.begin(), p.end()) - p.begin();//…æ≥˝÷ÿ∏¥µ„
     int m = 0;
-    for(int i = 0; i<n; i++)
+    ch.resize(n + 1);
+    for(int i = 0; i < n; i++)  //’“µΩœ¬Õπ∞¸
     {
-        while(m>1&&sign(Cross(ch[m-1]-ch[m-2],p[i]-ch[m-2]))<0) m--;
+        while(m > 1 && dcmp((ch[m - 1] - ch[m - 2]) ^ (p[i] - ch[m - 2])) < 0)
+            m--;
+        ch[m++] = p[i]; //∑¢œ÷”“±ﬂµƒµ„ ±…æ≥˝«∞√Êµƒµ„£¨‘Ÿ∏¸–¬
+    }
+    int k = m;  //œ¬Õπ∞¸µ„ ˝£¨’“…œÕπ∞¸ ±∑¿÷πŒÛ…æ
+    for(int i = n - 2; i >= 0; i--)
+    {
+        while(m > k && dcmp((ch[m - 1] - ch[m - 2]) ^ (p[i] - ch[m - 2])) < 0)
+            m--;
         ch[m++] = p[i];
     }
-    int k = m;
-    for(int i = n-2; i>=0; i--)
-    {
-        while(m>k&&sign(Cross(ch[m-1]-ch[m-2],p[i]-ch[m-2]))<0) m--;
-        ch[m++] = p[i];
-    }
-    if(n>1) m--;
-    return m;
+    if(n > 1)
+        m--;
+    ch.resize(m);
+    return m;  //∑µªÿµƒµ„ºØƒÊ ±’Î≈≈–Ú
 }
-
-Point p[MAXN];
-Point ch[MAXN];
 
 int main()
 {
+    Polygon poly, ans;
     int n;
-    scanf("%d",&n);
-    for(int i=0; i<n; i++)
-        p[i].read();
-    int sz=ConvexHull(p,n,ch);
-    cout << sz << endl;
-    int t=0;
-    for(int i=0; i<sz; i++)
+    scanf("%d", &n);
+    for(int i = 0; i < n; i++)
     {
-        if(ch[t].y>ch[i].y)
-            t=i;
+        Point p;
+        p.read();
+        poly.PB(p);
     }
-    for(int i=t; i<sz; i++)
-        cout << ch[i] << endl;
-    for(int i=0; i<t; i++)
-        cout << ch[i] << endl;
+    int m = ConvexHull(poly, ans);
+    printf("%d\n", m);
+    for(int i = 0; i < m; i++)
+        ans[i].print();
     return 0;
 }

@@ -2,11 +2,11 @@
  ********************************************************************************
  *  Author: ThoseBygones
  *  Version: V1.0
- *  Date: 2020-09-24
+ *  Date: 2020-09-25
  *  Subject: ACM-ICPC
  *  Language: C/C++14
  *  OJ: AOJ
- *  Algorithm: 圆和直线的交点
+ *  Algorithm: 多边形与圆的面积交
  ********************************************************************************
  *  Algo-Description:
  ********************************************************************************
@@ -39,7 +39,10 @@
 //#include <bits/stdc++.h>
 using namespace std;
 
-template<class T> inline T sqr(T x) {return x * x;}
+template<class T> inline T sqr(T x)
+{
+    return x * x;
+}
 typedef long long LL;
 typedef unsigned long long ULL;
 typedef long double LD;
@@ -134,26 +137,21 @@ struct Point
 
     void print() const
     {
-        printf("%.8f %.8f", x, y);
+        printf("(%f, %f)",x,y);
     }
 };
 
-struct Circle
+//向量的模
+Type Length(Vector v)
 {
-    Point p;
-    Type r;
-    Circle(Point p,Type r):p(p),r(r) {}
-    Circle() {}
-    void read()
-    {
-        p.read();
-        scanf("%lf",&r);
-    }
-    void print()
-    {
-        printf("%.20f %.20f %.20f\n", p.x, p.y, r);
-    }
-};
+    return sqrt(v * v);
+}
+
+//向量的夹角 a*b=|a||b|cosα
+Type Angle(Vector v1,Vector v2)
+{
+    return acos(v1 * v2 / Length(v1) / Length(v2));
+}
 
 struct Line
 {
@@ -167,7 +165,26 @@ struct Line
     }
 };
 
-void getLineCircleIntersection(Line L, Circle C, vector<Point>& ret)
+struct Circle
+{
+    Point p;
+    Type r;
+    Circle(Point p,Type r):p(p),r(r) {}
+    Circle() {}
+    Point polarCoordinates(double a)    //求圆边界上某个点相对于圆心的极角坐标
+    {
+        return Point(p.x + cos(a) * r, p.y + sin(a) * r);
+    }
+    void read()
+    {
+        p.read();
+        scanf("%lf", &r);
+    }
+};
+
+typedef vector<Point> Polygon;  //组成该平面的逆时针点集
+
+int getLineCircleIntersection(Line L, Circle C, vector<Point>& ret)
 {
     Vector v = L.b - L.a;
     Type a = v.x, b = L.a.x - C.p.x, c = v.y, d = L.a.y - C.p.y;
@@ -175,42 +192,84 @@ void getLineCircleIntersection(Line L, Circle C, vector<Point>& ret)
     Type delta = f * f - 4 * e * g;
     Type t1, t2;
     if(dcmp(delta) < 0) //相离
-        return;
+        return 0;
     if(dcmp(delta) == 0)    //相切
     {
         t1 = t2 = -f / (2 * e);
         ret.PB(L.a + v * t1);
-        ret.PB(L.a + v * t1);
+        return 1;
     }
     else
     {
         t1 = (-f - sqrt(delta)) / (2 * e);
-        //if(dcmp(t1-1) <= 0 && dcmp(t1) >= 0)  //这条判断表示线段
-            ret.PB(L.a + v * t1);
+        ret.PB(L.a + v * t1);
         t2 = (-f + sqrt(delta)) / (2 * e);
-        //if(dcmp(t2-1) <= 0 && dcmp(t2) >= 0)  //这条判断表示线段
-            ret.PB(L.a + v * t2);
+        ret.PB(L.a + v * t2);
+        return 2;
     }
 }
 
+
+double CircleTriangleIntersectionArea(Circle c, Point a, Point b) 	//a,b与圆心c所围成的三角形与圆围成的面积
+{
+    double r = c.r;
+    if(dcmp((c.p - a) ^ (c.p - b)) == 0)
+        return 0.0;
+    vector<Point> p, tmp;
+    p.PB(a);
+    Line l(a, b);
+    if(getLineCircleIntersection(l, c, tmp) == 2)   //直线和圆的位置关系  0:相离   1:相切   2:相交
+    {
+        if(dcmp((a - tmp[0]) * (b - tmp[0])) < 0)
+            p.PB(tmp[0]);
+        if(dcmp((a - tmp[1]) * (b - tmp[1])) < 0)
+            p.PB(tmp[1]);
+    }
+    p.PB(b);
+    if(sz(p) == 4 && dcmp((p[0] - p[1]) * (p[2] - p[1])) > 0)
+        swap(p[1], p[2]);
+    double res = 0.0;
+    for(int i = 0; i < sz(p) - 1; i++)
+    {
+        Vector v1 = p[i] - c.p, v2 = p[i + 1] - c.p;
+        if(dcmp(Length(v1) - c.r) > 0 || dcmp(Length(v2) - c.r) > 0)
+        {
+            double arg = Angle(v1, v2);
+            res += c.r * c.r * arg / 2.0;
+        }
+        else
+            res += fabs((v1 ^ v2) / 2.0);
+    }
+    return res;
+}
+
+//圆与多边形交（利用三角剖分）
+double CirclePolygonIntersectionArea(Circle c, Polygon &poly)
+{
+    double ret = 0;
+    for(int i = 0; i < sz(poly); i++)
+    {
+        Vector v1 = poly[i] - c.p, v2 = poly[(i + 1) % sz(poly)] - c.p;
+        ret += 1.0 * dcmp(v1 ^ v2) * CircleTriangleIntersectionArea(c, poly[i], poly[(i + 1) % sz(poly)]);
+    }
+    return fabs(ret);
+}
+
+
 int main()
 {
-    Circle c;
-    c.read();
-    int q;
-    scanf("%d", &q);
-    while(q--)
+    int n;
+    double r;
+    scanf("%d%lf", &n, &r);
+    Circle c = Circle(Point(0.0, 0.0), r);
+    Polygon poly;
+    for(int i = 0; i < n; i++)
     {
-        Line l;
-        l.a.read();
-        l.b.read();
-        vector<Point> ans;
-        getLineCircleIntersection(l, c, ans);
-        sort(ans.begin(), ans.end());
-        ans[0].print();
-        printf(" ");
-        ans[1].print();
-        puts("");
+        Point p;
+        p.read();
+        poly.PB(p);
     }
+    double ans = CirclePolygonIntersectionArea(c, poly);
+    printf("%.12f\n", ans);
     return 0;
 }

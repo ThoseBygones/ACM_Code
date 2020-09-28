@@ -6,7 +6,7 @@
  *  Subject: ACM-ICPC
  *  Language: C/C++14
  *  OJ: AOJ
- *  Algorithm: dfs + 染色 有向图判环
+ *  Algorithm:
  ********************************************************************************
  *  Algo-Description:
  ********************************************************************************
@@ -39,10 +39,7 @@
 //#include <bits/stdc++.h>
 using namespace std;
 
-template<class T> inline T sqr(T x)
-{
-    return x * x;
-}
+template<class T> inline T sqr(T x) {return x * x;}
 typedef long long LL;
 typedef unsigned long long ULL;
 typedef long double LD;
@@ -63,67 +60,30 @@ const double PI = acos(-1.0);
 #define rson mid+1,r,rt<<1|1
 #define lowbit(u) (u&(-u))
 
-const int MAXN = 105;
-const int MAXE = 1005;
-
-int head[MAXN];
-int color[MAXN];
-int cnt;
-
-struct Edge
-{
-    int to, nxt;
-    Edge() {}
-    Edge(int to, int nxt) : to(to), nxt(nxt) {}
-} e[MAXE];
-
-inline void addEdge(int u, int v)
-{
-    e[cnt].to = v;
-    e[cnt].nxt = head[u];
-    head[u] = cnt++;
-}
-
-bool dfs(int u)
-{
-    color[u] = 1;
-    for(int i = head[u]; ~i; i = e[i].nxt)
-    {
-        int v = e[i].to;
-        if(color[v] == 1)
-            return true;
-        if(!color[v] && dfs(v)) //下一个结点还未被处理过
-            return true;
-    }
-    color[u] = 2;
-    return false;
-}
-
-bool findLoop(int n)
-{
-    for(int i = 0; i < n; i++)
-    {
-        if(!color[i])
-        {
-            if(dfs(i))
-                return true;
-        }
-    }
-    return false;
-}
+vector<int> v;
 
 int main()
 {
-    int n, m;
-    scanf("%d%d", &n, &m);
-    memset(head, -1, sizeof(head));
-    cnt = 0;
-    for(int i = 0; i < m; i++)
+    int q;
+    scanf("%d", &q);
+    while(q--)
     {
-        int u, v;
-        scanf("%d%d", &u, &v);
-        addEdge(u, v);
+        int op;
+        scanf("%d", &op);
+        if(op == 0)
+        {
+            int x;
+            scanf("%d", &x);
+            v.PB(x);
+        }
+        else if(op == 1)
+        {
+            int x;
+            scanf("%d", &x);
+            printf("%d\n", v[x]);
+        }
+        else if(op == 2)
+            v.pop_back();
     }
-    printf("%d\n", findLoop(n));
     return 0;
 }

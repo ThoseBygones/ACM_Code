@@ -6,7 +6,7 @@
  *  Subject: ACM-ICPC
  *  Language: C/C++14
  *  OJ: AOJ
- *  Algorithm: 圆和直线的交点
+ *  Algorithm: 三角形内切圆
  ********************************************************************************
  *  Algo-Description:
  ********************************************************************************
@@ -134,7 +134,7 @@ struct Point
 
     void print() const
     {
-        printf("%.8f %.8f", x, y);
+        printf("(%f, %f)",x,y);
     }
 };
 
@@ -167,50 +167,40 @@ struct Line
     }
 };
 
-void getLineCircleIntersection(Line L, Circle C, vector<Point>& ret)
+//距离
+Type Length(Point p1,Point p2)
 {
-    Vector v = L.b - L.a;
-    Type a = v.x, b = L.a.x - C.p.x, c = v.y, d = L.a.y - C.p.y;
-    Type e = a * a + c * c, f = 2 * (a * b + c * d), g = b * b + d * d - C.r * C.r;
-    Type delta = f * f - 4 * e * g;
-    Type t1, t2;
-    if(dcmp(delta) < 0) //相离
-        return;
-    if(dcmp(delta) == 0)    //相切
-    {
-        t1 = t2 = -f / (2 * e);
-        ret.PB(L.a + v * t1);
-        ret.PB(L.a + v * t1);
-    }
-    else
-    {
-        t1 = (-f - sqrt(delta)) / (2 * e);
-        //if(dcmp(t1-1) <= 0 && dcmp(t1) >= 0)  //这条判断表示线段
-            ret.PB(L.a + v * t1);
-        t2 = (-f + sqrt(delta)) / (2 * e);
-        //if(dcmp(t2-1) <= 0 && dcmp(t2) >= 0)  //这条判断表示线段
-            ret.PB(L.a + v * t2);
-    }
+    Type x = p1.x - p2.x, y = p1.y - p2.y;
+    return sqrt(x * x + y * y);
+}
+
+Type Length(Vector v)
+{
+    return sqrt(v * v);
+}
+
+Type DistanceToLine(Point p, Line L)
+{
+    Vector v1 = L.b - L.a, v2 = p - L.a;
+    return fabs(v1 ^ v2) / Length(v1);
+}
+
+Circle TriangleInscribedCircle(Point p1,Point p2,Point p3)
+{
+    double a = Length(p2,p3);
+    double b = Length(p1,p3);
+    double c = Length(p1,p2);
+    Point p = (p1 * a + p2 * b + p3 * c) / (a + b + c);
+    return Circle(p,DistanceToLine(p,Line(p1,p2)));
 }
 
 int main()
 {
-    Circle c;
-    c.read();
-    int q;
-    scanf("%d", &q);
-    while(q--)
-    {
-        Line l;
-        l.a.read();
-        l.b.read();
-        vector<Point> ans;
-        getLineCircleIntersection(l, c, ans);
-        sort(ans.begin(), ans.end());
-        ans[0].print();
-        printf(" ");
-        ans[1].print();
-        puts("");
-    }
+    Point p1, p2, p3;
+    p1.read();
+    p2.read();
+    p3.read();
+    Circle c = TriangleInscribedCircle(p1, p2, p3);
+    c.print();
     return 0;
 }

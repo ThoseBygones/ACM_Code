@@ -6,7 +6,7 @@
  *  Subject: ACM-ICPC
  *  Language: C/C++14
  *  OJ: AOJ
- *  Algorithm: 圆和直线的交点
+ *  Algorithm: 两圆相对位置
  ********************************************************************************
  *  Algo-Description:
  ********************************************************************************
@@ -134,7 +134,7 @@ struct Point
 
     void print() const
     {
-        printf("%.8f %.8f", x, y);
+        printf("(%f, %f)",x,y);
     }
 };
 
@@ -149,68 +149,38 @@ struct Circle
         p.read();
         scanf("%lf",&r);
     }
-    void print()
-    {
-        printf("%.20f %.20f %.20f\n", p.x, p.y, r);
-    }
 };
 
-struct Line
+//距离
+Type Length(Point p1,Point p2)
 {
-    Point a,b;  //直线（线段）的两个端点（线段的时候可把a当作起点）
-    Vector v;   //方向向量，v = b - a
-    //double ang;//极角
-    Line() {}
-    Line(Point a,Point b):a(a),b(b)
-    {
-        v = b - a; /*ang = atan2(v.y, v.x);*/
-    }
-};
+    Type x = p1.x - p2.x, y = p1.y - p2.y;
+    return sqrt(x * x + y * y);
+}
 
-void getLineCircleIntersection(Line L, Circle C, vector<Point>& ret)
+int getTwoCirclesIntersection(Circle c1, Circle c2)
 {
-    Vector v = L.b - L.a;
-    Type a = v.x, b = L.a.x - C.p.x, c = v.y, d = L.a.y - C.p.y;
-    Type e = a * a + c * c, f = 2 * (a * b + c * d), g = b * b + d * d - C.r * C.r;
-    Type delta = f * f - 4 * e * g;
-    Type t1, t2;
-    if(dcmp(delta) < 0) //相离
-        return;
-    if(dcmp(delta) == 0)    //相切
-    {
-        t1 = t2 = -f / (2 * e);
-        ret.PB(L.a + v * t1);
-        ret.PB(L.a + v * t1);
-    }
+    Type d = Length(c1.p, c2.p);
+    if(dcmp(c1.r + c2.r - d) < 0)
+        return 4;   //相离
+    else if(dcmp(c1.r + c2.r -d) == 0)
+        return 3;   //外接
     else
     {
-        t1 = (-f - sqrt(delta)) / (2 * e);
-        //if(dcmp(t1-1) <= 0 && dcmp(t1) >= 0)  //这条判断表示线段
-            ret.PB(L.a + v * t1);
-        t2 = (-f + sqrt(delta)) / (2 * e);
-        //if(dcmp(t2-1) <= 0 && dcmp(t2) >= 0)  //这条判断表示线段
-            ret.PB(L.a + v * t2);
+        if(dcmp(fabs(c1.r - c2.r) - d) > 0)
+            return 0;   //内含
+        else if(dcmp(fabs(c1.r - c2.r) - d) == 0)
+            return 1;   //内切
+        else
+            return 2;
     }
 }
 
 int main()
 {
-    Circle c;
-    c.read();
-    int q;
-    scanf("%d", &q);
-    while(q--)
-    {
-        Line l;
-        l.a.read();
-        l.b.read();
-        vector<Point> ans;
-        getLineCircleIntersection(l, c, ans);
-        sort(ans.begin(), ans.end());
-        ans[0].print();
-        printf(" ");
-        ans[1].print();
-        puts("");
-    }
+    Circle c1, c2;
+    c1.read();
+    c2.read();
+    printf("%d\n", getTwoCirclesIntersection(c1, c2));
     return 0;
 }

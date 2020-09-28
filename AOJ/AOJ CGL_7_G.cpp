@@ -6,7 +6,7 @@
  *  Subject: ACM-ICPC
  *  Language: C/C++14
  *  OJ: AOJ
- *  Algorithm: 圆和直线的交点
+ *  Algorithm: 两圆公切线
  ********************************************************************************
  *  Algo-Description:
  ********************************************************************************
@@ -134,7 +134,7 @@ struct Point
 
     void print() const
     {
-        printf("%.8f %.8f", x, y);
+        printf("%.10f %.10f\n", x, y);
     }
 };
 
@@ -144,6 +144,10 @@ struct Circle
     Type r;
     Circle(Point p,Type r):p(p),r(r) {}
     Circle() {}
+    Point polarCoordinates(double a)    //求圆边界上某个点相对于圆心的极角坐标
+    {
+        return Point(p.x + cos(a) * r, p.y + sin(a) * r);
+    }
     void read()
     {
         p.read();
@@ -155,62 +159,84 @@ struct Circle
     }
 };
 
-struct Line
+//距离
+Type Length(Point p1,Point p2)
 {
-    Point a,b;  //直线（线段）的两个端点（线段的时候可把a当作起点）
-    Vector v;   //方向向量，v = b - a
-    //double ang;//极角
-    Line() {}
-    Line(Point a,Point b):a(a),b(b)
-    {
-        v = b - a; /*ang = atan2(v.y, v.x);*/
-    }
-};
+    Type x = p1.x - p2.x, y = p1.y - p2.y;
+    return sqrt(x * x + y * y);
+}
 
-void getLineCircleIntersection(Line L, Circle C, vector<Point>& ret)
+//向量的模
+Type Length(Vector v)
 {
-    Vector v = L.b - L.a;
-    Type a = v.x, b = L.a.x - C.p.x, c = v.y, d = L.a.y - C.p.y;
-    Type e = a * a + c * c, f = 2 * (a * b + c * d), g = b * b + d * d - C.r * C.r;
-    Type delta = f * f - 4 * e * g;
-    Type t1, t2;
-    if(dcmp(delta) < 0) //相离
-        return;
-    if(dcmp(delta) == 0)    //相切
+    return sqrt(v * v);
+}
+
+//计算向量极角（需要<cmath>头文件）
+double Angle(Vector v)
+{
+    return atan2(v.y, v.x);
+}
+
+int getTangents(Circle A, Circle B, vector<Point> &v)
+{
+    Point ta[5], tb[5];
+    Point *a = ta, *b = tb;
+    if(A.r < B.r)
     {
-        t1 = t2 = -f / (2 * e);
-        ret.PB(L.a + v * t1);
-        ret.PB(L.a + v * t1);
+        swap(A, B);
+        swap(a, b);
     }
-    else
+    int cnt = 0;
+    Type d2 = sqr(Length(A.p, B.p));
+    Type rdiff = A.r - B.r;
+    Type rsum = A.r + B.r;
+    if(dcmp(d2 - rdiff * rdiff) < 0)
+        return 0;   //内含
+    Vector va = B.p - A.p;
+    Type base = Angle(va);
+    if(dcmp(d2) == 0 && dcmp(A.r - B.r) == 0)
+        return -1;  //无限条切线
+    if(dcmp(d2 - rdiff * rdiff) == 0)   //内切
     {
-        t1 = (-f - sqrt(delta)) / (2 * e);
-        //if(dcmp(t1-1) <= 0 && dcmp(t1) >= 0)  //这条判断表示线段
-            ret.PB(L.a + v * t1);
-        t2 = (-f + sqrt(delta)) / (2 * e);
-        //if(dcmp(t2-1) <= 0 && dcmp(t2) >= 0)  //这条判断表示线段
-            ret.PB(L.a + v * t2);
+        a[cnt] = A.polarCoordinates(base);
+        b[cnt++] = B.polarCoordinates(base);
+        v.PB(Point(ta[0]));
+        return 1;
     }
+    //有外公切线
+    Type ang = acos((A.r - B.r) / sqrt(d2));
+    a[cnt] = A.polarCoordinates(base + ang);
+    b[cnt++] = B.polarCoordinates(base + ang);
+    a[cnt] = A.polarCoordinates(base - ang);
+    b[cnt++] = B.polarCoordinates(base - ang);
+    if(dcmp(d2 - rsum * rsum) == 0) //一条内公切线
+    {
+        a[cnt] = A.polarCoordinates(base);
+        b[cnt++] = B.polarCoordinates(PI + base);
+    }
+    else if(dcmp(d2 - rsum * rsum) > 0)
+    {
+        Type ang = acos((A.r + B.r) / sqrt(d2));
+        a[cnt] = A.polarCoordinates(base + ang);
+        b[cnt++] = B.polarCoordinates(PI + base + ang);
+        a[cnt] = A.polarCoordinates(base - ang);
+        b[cnt++] = B.polarCoordinates(PI + base - ang);
+    }
+    for(int i = 0; i < cnt; i++)
+        v.PB(Point(ta[i]));
+    return cnt;
 }
 
 int main()
 {
-    Circle c;
-    c.read();
-    int q;
-    scanf("%d", &q);
-    while(q--)
-    {
-        Line l;
-        l.a.read();
-        l.b.read();
-        vector<Point> ans;
-        getLineCircleIntersection(l, c, ans);
-        sort(ans.begin(), ans.end());
-        ans[0].print();
-        printf(" ");
-        ans[1].print();
-        puts("");
-    }
+    Circle c1, c2;
+    c1.read();
+    c2.read();
+    vector<Point> ans;
+    int cnt = getTangents(c1, c2, ans);
+    sort(ans.begin(), ans.end());
+    for(int i = 0; i < cnt; i++)
+        ans[i].print();
     return 0;
 }

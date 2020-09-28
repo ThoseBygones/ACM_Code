@@ -6,7 +6,7 @@
  *  Subject: ACM-ICPC
  *  Language: C/C++14
  *  OJ: AOJ
- *  Algorithm: 圆和直线的交点
+ *  Algorithm: 求过一点和圆的所有切线
  ********************************************************************************
  *  Algo-Description:
  ********************************************************************************
@@ -39,7 +39,10 @@
 //#include <bits/stdc++.h>
 using namespace std;
 
-template<class T> inline T sqr(T x) {return x * x;}
+template<class T> inline T sqr(T x)
+{
+    return x * x;
+}
 typedef long long LL;
 typedef unsigned long long ULL;
 typedef long double LD;
@@ -134,7 +137,7 @@ struct Point
 
     void print() const
     {
-        printf("%.8f %.8f", x, y);
+        printf("%.10f %.10f\n", x, y);
     }
 };
 
@@ -144,6 +147,10 @@ struct Circle
     Type r;
     Circle(Point p,Type r):p(p),r(r) {}
     Circle() {}
+    Point polarCoordinates(double a)    //求圆边界上某个点相对于圆心的极角坐标
+    {
+        return Point(p.x + cos(a) * r, p.y + sin(a) * r);
+    }
     void read()
     {
         p.read();
@@ -155,62 +162,44 @@ struct Circle
     }
 };
 
-struct Line
+Type Length(Point p1,Point p2)
 {
-    Point a,b;  //直线（线段）的两个端点（线段的时候可把a当作起点）
-    Vector v;   //方向向量，v = b - a
-    //double ang;//极角
-    Line() {}
-    Line(Point a,Point b):a(a),b(b)
-    {
-        v = b - a; /*ang = atan2(v.y, v.x);*/
-    }
-};
+    Type x = p1.x - p2.x, y = p1.y - p2.y;
+    return sqrt(x * x + y * y);
+}
 
-void getLineCircleIntersection(Line L, Circle C, vector<Point>& ret)
+
+//计算向量极角（需要<cmath>头文件）
+double Angle(Vector v)
 {
-    Vector v = L.b - L.a;
-    Type a = v.x, b = L.a.x - C.p.x, c = v.y, d = L.a.y - C.p.y;
-    Type e = a * a + c * c, f = 2 * (a * b + c * d), g = b * b + d * d - C.r * C.r;
-    Type delta = f * f - 4 * e * g;
-    Type t1, t2;
-    if(dcmp(delta) < 0) //相离
-        return;
-    if(dcmp(delta) == 0)    //相切
-    {
-        t1 = t2 = -f / (2 * e);
-        ret.PB(L.a + v * t1);
-        ret.PB(L.a + v * t1);
-    }
-    else
-    {
-        t1 = (-f - sqrt(delta)) / (2 * e);
-        //if(dcmp(t1-1) <= 0 && dcmp(t1) >= 0)  //这条判断表示线段
-            ret.PB(L.a + v * t1);
-        t2 = (-f + sqrt(delta)) / (2 * e);
-        //if(dcmp(t2-1) <= 0 && dcmp(t2) >= 0)  //这条判断表示线段
-            ret.PB(L.a + v * t2);
-    }
+    return atan2(v.y, v.x);
+}
+
+//向量逆时针旋转rad弧度
+Vector Rotate(Vector v,double rad)
+{
+    return Vector(v.x * cos(rad) - v.y * sin(rad), v.x * sin(rad) + v.y * cos(rad));
+}
+
+void getTangentPoint(Point p, Circle c, vector<Point> &v)
+{
+    double dis = Length(p, c.p);
+    double base = Angle(p - c.p);
+    double ang = acos(c.r / dis);
+    v.PB(c.polarCoordinates(base - ang));
+    v.PB(c.polarCoordinates(base + ang));
 }
 
 int main()
 {
+    Point p;
     Circle c;
+    p.read();
     c.read();
-    int q;
-    scanf("%d", &q);
-    while(q--)
-    {
-        Line l;
-        l.a.read();
-        l.b.read();
-        vector<Point> ans;
-        getLineCircleIntersection(l, c, ans);
-        sort(ans.begin(), ans.end());
-        ans[0].print();
-        printf(" ");
-        ans[1].print();
-        puts("");
-    }
+    vector<Point> ans;
+    getTangentPoint(p, c, ans);
+    sort(ans.begin(), ans.end());
+    ans[0].print();
+    ans[1].print();
     return 0;
 }

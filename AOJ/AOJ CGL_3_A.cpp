@@ -6,7 +6,7 @@
  *  Subject: ACM-ICPC
  *  Language: C/C++14
  *  OJ: AOJ
- *  Algorithm: 圆和直线的交点
+ *  Algorithm: 多边形面积
  ********************************************************************************
  *  Algo-Description:
  ********************************************************************************
@@ -134,83 +134,33 @@ struct Point
 
     void print() const
     {
-        printf("%.8f %.8f", x, y);
+        printf("(%f, %f)",x,y);
     }
 };
 
-struct Circle
-{
-    Point p;
-    Type r;
-    Circle(Point p,Type r):p(p),r(r) {}
-    Circle() {}
-    void read()
-    {
-        p.read();
-        scanf("%lf",&r);
-    }
-    void print()
-    {
-        printf("%.20f %.20f %.20f\n", p.x, p.y, r);
-    }
-};
+typedef vector<Point> Polygon;  //组成该平面的逆时针点集
 
-struct Line
+double PolygonArea(Polygon &poly)
 {
-    Point a,b;  //直线（线段）的两个端点（线段的时候可把a当作起点）
-    Vector v;   //方向向量，v = b - a
-    //double ang;//极角
-    Line() {}
-    Line(Point a,Point b):a(a),b(b)
-    {
-        v = b - a; /*ang = atan2(v.y, v.x);*/
-    }
-};
-
-void getLineCircleIntersection(Line L, Circle C, vector<Point>& ret)
-{
-    Vector v = L.b - L.a;
-    Type a = v.x, b = L.a.x - C.p.x, c = v.y, d = L.a.y - C.p.y;
-    Type e = a * a + c * c, f = 2 * (a * b + c * d), g = b * b + d * d - C.r * C.r;
-    Type delta = f * f - 4 * e * g;
-    Type t1, t2;
-    if(dcmp(delta) < 0) //相离
-        return;
-    if(dcmp(delta) == 0)    //相切
-    {
-        t1 = t2 = -f / (2 * e);
-        ret.PB(L.a + v * t1);
-        ret.PB(L.a + v * t1);
-    }
-    else
-    {
-        t1 = (-f - sqrt(delta)) / (2 * e);
-        //if(dcmp(t1-1) <= 0 && dcmp(t1) >= 0)  //这条判断表示线段
-            ret.PB(L.a + v * t1);
-        t2 = (-f + sqrt(delta)) / (2 * e);
-        //if(dcmp(t2-1) <= 0 && dcmp(t2) >= 0)  //这条判断表示线段
-            ret.PB(L.a + v * t2);
-    }
+    if(poly.size() == 0)
+        return 0;
+    double area = 0;
+    for(int i = 1; i < poly.size() - 1; i++)
+        area += ((poly[i] - poly[0]) ^ (poly[i + 1] - poly[0]));
+    return area / 2;
 }
 
 int main()
 {
-    Circle c;
-    c.read();
-    int q;
-    scanf("%d", &q);
-    while(q--)
+    Polygon poly;
+    int n;
+    scanf("%d", &n);
+    for(int i = 0; i < n; i++)
     {
-        Line l;
-        l.a.read();
-        l.b.read();
-        vector<Point> ans;
-        getLineCircleIntersection(l, c, ans);
-        sort(ans.begin(), ans.end());
-        ans[0].print();
-        printf(" ");
-        ans[1].print();
-        puts("");
+        Point p;
+        p.read();
+        poly.PB(p);
     }
+    printf("%.1f\n", PolygonArea(poly));
     return 0;
 }
