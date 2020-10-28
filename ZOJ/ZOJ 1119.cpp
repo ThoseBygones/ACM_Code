@@ -1,98 +1,174 @@
+/*
+ ********************************************************************************
+ *  Author: ThoseBygones
+ *  Version: V1.0
+ *  Date: 2020-10-19
+ *  Subject: ACM-ICPC
+ *  Language: C/C++14
+ *  OJ: ZOJ
+ *  Algorithm: Tarjan算法求割点
+ ********************************************************************************
+ *  Algo-Description:
+ ********************************************************************************
+ */
+
+//#pragma comment(linker,"/STACK:102400000,102400000")
 #include <iostream>
 #include <cstdio>
-#include <cstring>
+#include <cstdlib>
+#include <cassert>
+#include <climits>
+#include <ctime>
+#include <numeric>
+#include <vector>
 #include <algorithm>
+#include <bitset>
+#include <cmath>
+#include <cstring>
+#include <iomanip>
+#include <complex>
+#include <deque>
+#include <functional>
+#include <list>
+#include <map>
+#include <string>
+#include <sstream>
+#include <set>
+#include <stack>
+#include <queue>
+//#include <bits/stdc++.h>
 using namespace std;
 
-#define MAXN 1005
+template<class T> inline T sqr(T x) {return x * x;}
+typedef long long LL;
+typedef unsigned long long ULL;
+typedef long double LD;
+typedef pair<int, int> PII;
+typedef pair<PII, int> PIII;
+typedef pair<LL, LL> PLL;
+typedef pair<LL, int> PLI;
+typedef pair<LD, LD> PDD;
+#define MP make_pair
+#define PB push_back
+#define sz(x) ((int)(x).size())
+const double EPS = 1e-6;
+const int INF = 0x3fffffff;
+const LL LINF = INF * 1ll * INF;
+const double PI = acos(-1.0);
 
-int edge[MAXN][MAXN];   //邻接矩阵
-int vis[MAXN];  //顶点的访问状态
-int dfn[MAXN];  //每个顶点的dfn（深度优先搜索序数）值
-int low[MAXN];  //每个顶点的low值
-int subnets[MAXN];  //记录每个节点（去掉该节点后剩余）的连通分量个数
-int son;    //根节点的子女个数
-int nodes;  //记录输入的节点数
-int tempdfn;    //记录dfs搜索过程中当前状态下的dfn值
+#define lson l,mid,rt<<1
+#define rson mid+1,r,rt<<1|1
+#define lowbit(u) (u&(-u))
 
-void dfs(int u) //使用tarjan算法求割点（关节点）
+const int MAXN = 1005;
+const int MAXE = MAXN * MAXN;
+
+class CUT
 {
-    for(int v=1; v<=nodes; v++)
+public:
+    int head[MAXN];
+    int cnt;
+    struct Edge
     {
-        if(edge[u][v])  //u和v两点邻接，在深度优先生成树中的情况有两种：1.v是u的一个子节点（儿子）；2.v是u的祖先，边(u,v)是一条回边
+        int from,to,nxt;
+        Edge() {}
+        Edge(int from,int to,int nxt):from(from),to(to),nxt(nxt) {}
+    } e[MAXE];
+
+    int cut[MAXN],dfn[MAXN],low[MAXN];
+    int dfs_clock;
+
+    void init()
+    {
+        memset(head,-1,sizeof(head));
+        memset(dfn, 0, sizeof(dfn));
+        cnt = dfs_clock = 0;
+        for(int i=0; i<=1000; i++)
+            cut[i] = 0;
+    }
+
+    inline void addEdge(int u,int v)
+    {
+        e[cnt].from = u;
+        e[cnt].to = v;
+        e[cnt].nxt = head[u];
+        head[u] = cnt++;
+    }
+
+    int dfs(int u,int fa)
+    {
+        int lowu = dfn[u] = ++dfs_clock;
+        int child = 0;
+        for(int i=head[u]; ~i; i=e[i].nxt)
         {
-            if(!vis[v]) //即上面的第1种情况
+            int v = e[i].to;
+            if(!dfn[v])
             {
-                vis[v]=1;
-                tempdfn++;
-                dfn[v]=low[v]=tempdfn;
-                dfs(v);
-                low[u]=min(low[u],low[v]);  //回退的时候计算low的值
-                if(low[v]>=dfn[u])  //u点为关节点的充要条件之一
+                child++;
+                int lowv = dfs(v,u);
+                lowu = min(lowu,lowv);
+                if(lowv >= dfn[u])
                 {
-                    //u点为关节点的另一个充要条件
-                    if(u!=1)    //如果这个点不是根节点，则记录其子节点数（连通分量数）加一
-                        subnets[u]++;
-                    if(u==1)    //如果这个点是根节点，则记录根节点的儿子书加一
-                        son++;
+                    if(~fa)
+                        cut[u] = child + 1;
+                    else
+                        cut[u] = child;
                 }
+
             }
-            else    //若此点已被访问过（即第2种情况）
-                low[u]=min(low[u],dfn[v]);
+            else if(dfn[v] < dfn[u] && v != fa)
+                lowu = min(lowu,dfn[v]);
+        }
+        if(fa == -1 && child == 1)
+            cut[u] = 0;
+        low[u] = lowu;
+        return lowu;
+    }
+
+    void buildGraph(int u)
+    {
+        while(u)
+        {
+            int v;
+            scanf("%d", &v);
+            addEdge(u, v);
+            addEdge(v, u);
+            scanf("%d", &u);
         }
     }
-}
 
-void init()
-{
-    memset(vis,0,sizeof(vis));
-    memset(subnets,0,sizeof(subnets));
-    memset(dfn,0,sizeof(dfn));
-    memset(low,0,sizeof(low));
-    son=0;
-    dfn[1]=low[1]=1;
-    tempdfn=1;
-    vis[1]=1;
-}
-
-int main()
-{
-    int kase=1;
-    int u,v;
-    while(~scanf("%d",&u),u)
+    void solve(int u, int kase)
     {
-        memset(edge,0,sizeof(edge));
-        nodes=0;
-        scanf("%d",&v);
-        nodes=max(nodes,u);
-        nodes=max(nodes,v);
-        edge[u][v]=edge[v][u]=1;
-        while(~scanf("%d",&u),u)
+        buildGraph(u);
+        for(int i=1; i<=1000; i++)
         {
-            scanf("%d",&v);
-            nodes=max(nodes,u);
-            nodes=max(nodes,v);
-            edge[u][v]=edge[v][u]=1;
+            if(!dfn[i])
+                dfs(i,-1);
         }
-        init();
-        dfs(1);
-        if(kase>1)
-            printf("\n");
-        printf("Network #%d\n",kase++);
-        if(son>1)
-            subnets[1]=son-1;   //先减去1，以便下一步的遍历所有节点的时候统一加上1
-        bool flag=false;
-        for(int i=1; i<=nodes; i++)
+        if(kase != 1)
+            puts("");
+        printf("Network #%d\n", kase);
+        bool flag = false;
+        for(int i = 1; i <= 1000; i++)
         {
-            if(subnets[i])
+            if(cut[i])
             {
-                flag=true;
-                printf("  SPF node %d leaves %d subnets\n",i,subnets[i]+1);
+                flag = true;
+                printf("  SPF node %d leaves %d subnets\n", i, cut[i]);
             }
         }
         if(!flag)
-            printf("  No SPF nodes\n");
-        //printf("\n");
+            puts("  No SPF nodes");
+    }
+} cut;
+
+int main()
+{
+    int u, kase = 1;
+    while(~scanf("%d", &u), u)
+    {
+        cut.init();
+        cut.solve(u, kase++);
     }
     return 0;
 }
