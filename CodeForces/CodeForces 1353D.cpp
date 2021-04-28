@@ -4,15 +4,39 @@
  *  Version: V1.0
  *  Date: 2020-06-08
  *  Subject: ACM-ICPC
- *  Language: C/C++11
+ *  Language: C/C++14
  *  OJ: CodeForces
- *  Algorithm: 优先队列
+ *  Algorithm: 分治 + 优先队列
  ********************************************************************************
  *  Algo-Description:
  ********************************************************************************
  */
 
-#include <bits/stdc++.h>
+//#pragma comment(linker,"/STACK:102400000,102400000")
+#include <iostream>
+#include <cstdio>
+#include <cstdlib>
+#include <cassert>
+#include <climits>
+#include <ctime>
+#include <numeric>
+#include <vector>
+#include <algorithm>
+#include <bitset>
+#include <cmath>
+#include <cstring>
+#include <iomanip>
+#include <complex>
+#include <deque>
+#include <functional>
+#include <list>
+#include <map>
+#include <string>
+#include <sstream>
+#include <set>
+#include <stack>
+#include <queue>
+//#include <bits/stdc++.h>
 using namespace std;
 
 template<class T> inline T sqr(T x) {return x * x;}
